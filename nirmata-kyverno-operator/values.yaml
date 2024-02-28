@@ -4,11 +4,13 @@
 
 profile: "prod"
 
+licenseKey: "free-tier-license"
+
 cloudPlatform: ""
 
 namespace:
 
-replicaCount: 1
+replicaCount: 3
 
 envVars: []
 
