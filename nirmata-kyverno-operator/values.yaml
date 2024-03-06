@@ -4,6 +4,8 @@
 
 profile: "prod"
 
+licenseKey: "free-tier-license"
+
 cloudPlatform: ""
 
 namespace:
