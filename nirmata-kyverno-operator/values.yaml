@@ -4,25 +4,28 @@
 
 profile: "prod"
 
-licenseKey: "free-tier-license"
-
 cloudPlatform: ""
 
 namespace:
 
-replicaCount: 3
+globalLabels: {}
+globalAnnotations: {}
+
+replicaCount: 1
 
 envVars: []
 
 image:
   repository: ghcr.io/nirmata/nirmata-kyverno-operator
   # Defaults to chart appVersion
-  tag: v0.2.5
+  tag:
   pullPolicy: IfNotPresent
   pullSecrets:
     registry: ghcr.io
     name: image-pull-secret
     create: false
+    username:
+    password:
 
 rbac:
   create: true
@@ -36,6 +39,7 @@ rbac:
     # If not set and create is true, a name is generated using the fullname template
     name: ""
 
+enablePreDeleteHook: true
 enableWebhook: true
 # Whether certificate management is done by "cert-manager", "operator", "other"
 certManager: operator
@@ -44,7 +48,7 @@ certManager: operator
 kyverno:
   createCR: true
   enablePolicyExceptions: true
-  replicaCount: 3
+  replicaCount:
   cleanupJobsRegistry: ~
   config:
     create: true
@@ -71,13 +75,13 @@ kyverno:
         extraResources: []
   templating:
     enabled: false
-    image: bitnami/kubectl:latest
+    image: ghcr.io/nirmata/kubectl:1.29.0
   webhooksCleanup:
+    enabled: false
     enable: false
   crds:
     install: true
-    annotations: 
-      argocd.argoproj.io/sync-options: Replace=true
+    annotations: {}
   cleanupController:
     # -- Enable cleanup controller.
     enabled: true
@@ -123,101 +127,31 @@ kyverno:
     # -- Image repository
     repository: ghcr.io
     # -- Image tag
-    tag: v1.10.7-n4k.nirmata.3
+    tag: v1.10.7-n4k.nirmata.4
 
   # -- Override default exclude namespaces (default kyverno, kube-system, nirmata, nirmata-system )
   excludedNamespacesForWebhook: []
 
   # Kyverno Helm Chart customizations other than those already in kyverno CR
   helm:
+    apiVersionOverride:
+      podDisruptionBudget: "policy/v1"
     licenseManager:
       imageTag: v0.1.8
-    securityContext: {}
-    admissionController:
-      securityContext: {}
-      initContainer:
-        resources:
-          limits:
-            memory: 256Mi
-          requests:
-            cpu: 10m
-            memory: 128Mi
-      container:
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            cpu: 100m
-            memory: 128Mi
-
-    cleanupController:
-      image: 
-        registry: ghcr.io
-      securityContext: {}
-      resources:
-        # -- Pod resource limits
-        limits:
-          memory: 256Mi
-        # -- Pod resource requests
-        requests:
-          cpu: 100m
-          memory: 64Mi
-
-    reportsController:
-      image: 
-        registry: ghcr.io
-      securityContext: {}
-      resources:
-        # -- Pod resource limits
-        limits:
-          memory: 256Mi
-        # -- Pod resource requests
-        requests:
-          cpu: 100m
-          memory: 64Mi
-
-    backgroundController:
-      securityContext: {}
-      image: 
-        registry: ghcr.io
-      resources:
-        # -- Pod resource limits
-        limits:
-          memory: 256Mi
-        # -- Pod resource requests
-        requests:
-          cpu: 100m
-          memory: 64Mi
-          
     webhooksCleanup:
-      image: bitnami/kubectl:latest
+      enabled: false
+      image: ghcr.io/nirmata/kubectl:1.29.0
     cleanupJobs:
       admissionReports:
         image:
-          repository: bitnami/kubectl
-          tag: 'latest'
+          tag: '1.29.0'
       clusterAdmissionReports:
         image:
-          repository: bitnami/kubectl
-          tag: 'latest'
-    apiVersionOverride:
-      podDisruptionBudget: "policy/v1"
-
-    config:
-    webhooks:
-    #Exclude namespaces
-      - namespaceSelector:
-        matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values:
-          - kyverno
-          - kube-system
-          - nirmata-system
+          tag: '1.29.0'
 
 policies:
   chartRepoUsername:
-  policySets: "[]"
+  policySets:
 
 awsAdapter:
   createCR: false
@@ -225,7 +159,7 @@ awsAdapter:
   replicas: 1
   image:
     repository: ghcr.io/nirmata/kyverno-aws-adapter
-    tag: 'latest'
+    tag: v0.3.0
   rbac:
     create: false
     serviceAccount:
@@ -243,7 +177,7 @@ imageScanAdapter:
   replicas: 1
   image:
     repository: ghcr.io/nirmata/image-scan-adapter
-    tag: latest
+    tag: v0.1.0
   rbac:
     create: false
     serviceAccount:
@@ -258,7 +192,7 @@ cisAdapter:
   replicas: 1
   image:
     repository: ghcr.io/nirmata/kube-bench-adapter
-    tag: latest
+    tag: v0.2.1
   rbac:
     create: false
   serviceAccount:
@@ -336,6 +270,8 @@ autoscaling:
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
 
 tolerations: []
 
