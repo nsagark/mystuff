@@ -51,7 +51,8 @@ spec:
             - nirmata
             - prometheus-op
             - velero
-            - twistlock      
+            - twistlock
+            - myns
       validate:
         pattern:
           spec:
