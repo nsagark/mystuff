@@ -1,0 +1,10 @@
+resources:
+- ../base/
+
+patchesStrategicMerge:
+- patches/patch-disallow-latest-tag.yaml
+
+
+
+
+
