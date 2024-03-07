@@ -32,7 +32,7 @@ clusterPatches:
      kind: Cluster
      name: k8s-peo-stage-01
   kustomizePatch: ./k8s-peo-stage-01/
-  - target:
+- target:
      kind: Cluster
      name: tntcluster
   kustomizePatch: ./tntcluster/
