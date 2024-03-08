@@ -6,9 +6,9 @@ metadata:
   labels:
     {{- include "enterprise-kyverno.labels" . | nindent 4 }}
   annotations:
-    {{- if .Values.globalAnnotations }}
-    {{- toYaml .Values.globalAnnotations | nindent 4 }}
-    {{- end }}
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
   name: kyverno
   namespace: {{ template "enterprise-kyverno.namespace" . }}
 spec:
