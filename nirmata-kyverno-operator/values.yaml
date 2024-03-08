@@ -49,7 +49,6 @@ certManager: operator
 # Component configurations
 kyverno:
   createCR: true
-  enablePostInstallHook: true
   enablePolicyExceptions: true
   replicaCount:
   cleanupJobsRegistry: ~
