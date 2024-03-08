@@ -3,7 +3,7 @@ kind: ClusterPolicy
 metadata:
   name: disallow-latest-tag
 spec:
-  validationFailureAction: Audit
+  validationFailureAction: Enforce
   rules:
     - name: require-image-tag
       match:
@@ -25,7 +25,7 @@ spec:
             - prometheus-op
             - velero
             - twistlock
-            - myns
+            - myns7
       validate:
         pattern:
           spec:
@@ -52,7 +52,7 @@ spec:
             - prometheus-op
             - velero
             - twistlock
-            - myns
+            - myns7
       validate:
         pattern:
           spec:
