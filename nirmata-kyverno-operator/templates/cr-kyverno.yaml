@@ -2,7 +2,6 @@
 apiVersion: security.nirmata.io/v1alpha1
 kind: KyvernoConfig
 metadata:
-  annotations:
   labels:
     {{- include "enterprise-kyverno.labels" . | nindent 4 }}
   name: kyverno
