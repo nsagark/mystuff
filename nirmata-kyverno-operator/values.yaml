@@ -130,10 +130,13 @@ kyverno:
 
   # Kyverno Helm Chart customizations other than those already in kyverno CR
   helm:
+    grafana.enabled: true
     licenseManager:
       imageTag: v0.1.8
     securityContext: {}
     admissionController:
+      serviceMonitor.enabled: true
+      serviceMonitor.namespace: prometheus-operator
       securityContext: {}
       initContainer:
         resources:
@@ -151,6 +154,8 @@ kyverno:
             memory: 128Mi
 
     cleanupController:
+      serviceMonitor.enabled: true
+      serviceMonitor.namespace: prometheus-operator    
       image: 
         registry: ghcr.io
       securityContext: {}
@@ -164,6 +169,8 @@ kyverno:
           memory: 64Mi
 
     reportsController:
+      serviceMonitor.enabled: true
+      serviceMonitor.namespace: prometheus-operator    
       image: 
         registry: ghcr.io
       securityContext: {}
@@ -177,6 +184,8 @@ kyverno:
           memory: 64Mi
 
     backgroundController:
+      serviceMonitor.enabled: true
+      serviceMonitor.namespace: prometheus-operator    
       securityContext: {}
       image: 
         registry: ghcr.io
