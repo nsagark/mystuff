@@ -1,5 +1,7 @@
 resources:
-- ../base/
+- disallow-latest-tag.yaml
+
+#- ../base/
 
 # patchesStrategicMerge:
 # - patches/patch-disallow-capabilities.yaml
