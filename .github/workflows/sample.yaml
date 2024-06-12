@@ -2,14 +2,15 @@ name: Deploy Kyverno
 
 on:
   pull_request:
-    types:
-      - closed
+    branches:
+      - "main"
+  push:
+    branches:
+      - "main"
 
 jobs:
-  setup-environment:
-    if: github.event.pull_request.merged == true
+  test-and-deploy-policies:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
