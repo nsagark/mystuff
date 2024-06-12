@@ -6,7 +6,7 @@ on:
       - "main"
   push:
     branches:
-      - "main"
+      - "tnt2"
 
 jobs:
   test-and-deploy-policies:
