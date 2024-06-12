@@ -1,0 +1,73 @@
+name: Deploy Kyverno
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  setup-environment:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+      - name: Install kind
+        run: |
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+
+      - name: Create kind cluster
+        run: kind create cluster --image kindest/node:v1.27.0
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Add Nirmata Helm repo
+        run: helm repo add nirmata https://nirmata.github.io/kyverno-charts/
+
+      - name: Install Kyverno
+        run: |
+          helm install kyverno nirmata/kyverno \
+            --version=v3.0.29 \
+            --namespace kyverno \
+            --create-namespace \
+            --set admissionController.replicas=1 \
+            --set cleanupController.enabled=false \
+            --set reportsController.enabled=false \
+            --set backgroundController.enabled=false \
+            --set crds.backgroundscanreports=false \
+            --set crds.clusterbackgroundscanreports=false \
+            --set crds.clusterpolicyreports=false \
+            --set crds.policyreports=false \
+            --set crds.cleanuppolicies=false
+
+      - name: Install Kyverno Chainsaw
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            curl -Lo chainsaw https://github.com/nirmata/kyverno/releases/download/v1.0.0/chainsaw-linux-amd64
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            curl -Lo chainsaw https://github.com/nirmata/kyverno/releases/download/v1.0.0/chainsaw-darwin-amd64
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            curl -Lo chainsaw.exe https://github.com/nirmata/kyverno/releases/download/v1.0.0/chainsaw-windows-amd64.exe
+          fi
+          chmod +x chainsaw
+          sudo mv chainsaw /usr/local/bin/
+          chainsaw version
