@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-force-delete
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: check-grace-period
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          - Deployment
+          - Service
+          - PersistentVolumeClaim
+          operations:
+          - DELETE
+    exclude:
+      any:
+      - clusterRoles:
+        - cluster-admin
+    validate:
+      message: "Force deletion of resources with --grace-period < 30s --force or --now is not allowed for non-admin users."
+      deny:
+        conditions:
+          all:
+          - key: "{{ request.options.gracePeriodSeconds || 0 }}"
+            operator: LessThan 
+            value: 30
