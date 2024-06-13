@@ -3,9 +3,6 @@ name: Deploy Kyverno
 on:
   pull_request:
     branches:
-      - "main"
-  push:
-    branches:
       - "tnt2"
 
 jobs:
