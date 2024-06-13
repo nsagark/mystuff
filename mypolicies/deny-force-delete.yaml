@@ -3,7 +3,7 @@ kind: ClusterPolicy
 metadata:
   name: deny-force-delete
 spec:
-  validationFailureAction: Enforce
+  validationFailureAction: Audit
   background: false
   rules:
   - name: check-grace-period
