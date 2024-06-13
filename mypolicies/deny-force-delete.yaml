@@ -26,6 +26,6 @@ spec:
       deny:
         conditions:
           all:
-          - key: "{{ request.options.gracePeriodSeconds || 0 }}"
+          - key: "{{ request.options.gracePeriodSeconds }}"
             operator: LessThan 
             value: 30
