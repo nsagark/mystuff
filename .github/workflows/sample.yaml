@@ -73,13 +73,8 @@ jobs:
 
       - name: Install Kyverno Chainsaw
         run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            curl -Lo chainsaw https://github.com/nirmata/kyverno/releases/download/v1.0.0/chainsaw-linux-amd64
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            curl -Lo chainsaw https://github.com/nirmata/kyverno/releases/download/v1.0.0/chainsaw-darwin-amd64
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            curl -Lo chainsaw.exe https://github.com/nirmata/kyverno/releases/download/v1.0.0/chainsaw-windows-amd64.exe
-          fi
+          curl -LO https://github.com/kyverno/chainsaw/releases/download/v0.2.4/chainsaw_linux_amd64.tar.gz
+          tar xvf chainsaw_linux_amd64.tar.gz
           chmod +x chainsaw
           sudo mv chainsaw /usr/local/bin/
           chainsaw version
