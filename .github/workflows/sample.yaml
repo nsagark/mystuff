@@ -54,7 +54,14 @@ jobs:
           chainsaw          
 
       - name: Create kind cluster
-        run: kind create cluster --image kindest/node:v1.27.0
+        run: |
+          kind create cluster --image kindest/node:v1.27.0
+          pods=$(kubectl get pods -n kube-system -o jsonpath='{.items[*].metadata.name}')
+
+          # Wait for each pod to be ready
+          for pod in $pods; do
+            kubectl wait --for=condition=ready pod/$pod -n kube-system --timeout=300s
+          done
 
       - name: Add Nirmata Helm repo
         run: helm repo add nirmata https://nirmata.github.io/kyverno-charts/
@@ -74,8 +81,10 @@ jobs:
             --set crds.clusterpolicyreports=false \
             --set crds.policyreports=false \
             --set crds.cleanuppolicies=false
-          set -e
-          kubectl wait --namespace kyverno --for=condition=ready pod --selector '!job-name' --timeout=60s
+          kypods=$(kubectl get pods -n kube-system -o jsonpath='{.items[*].metadata.name}')
+          for kypod in $kypods; do
+            kubectl wait --for=condition=ready pod/$pod -n kyverno --timeout=300s
+          done
           kubectl get pods -A
           
 
