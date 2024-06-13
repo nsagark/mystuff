@@ -84,7 +84,7 @@ jobs:
             --set crds.cleanuppolicies=false
           kypods=$(kubectl get pods -n kyverno -o jsonpath='{.items[*].metadata.name}')
           for kypod in $kypods; do
-            kubectl wait --for=condition=ready pod/$pod -n kyverno --timeout=300s
+            kubectl wait --for=condition=ready pod/$kypod -n kyverno --timeout=300s
           done
           kubectl get pods -A
           
