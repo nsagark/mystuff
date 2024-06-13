@@ -67,8 +67,9 @@ jobs:
       - name: Add Nirmata Helm repo
         run: helm repo add nirmata https://nirmata.github.io/kyverno-charts/
 
-      - name: Install Kyverno
+      - name: Install N4K
         run: |
+          helm repo add nirmata https://nirmata.github.io/kyverno-charts/
           helm install kyverno nirmata/kyverno \
             --version=v3.0.29 \
             --namespace kyverno \
