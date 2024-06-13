@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install Docker
+      - name: Install Software - Docker, kind, kubectl, helm, Chainsaw
         run: |
           # Add Docker's official GPG key:
           sudo apt-get update
@@ -33,24 +33,28 @@ jobs:
 
           sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-      - name: Install kind
-        run: |
+          # Install kind
           curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
           chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/kind
+          sudo mv ./kind /usr/local/bin/kind    
+
+          # Install kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/     
+
+          # Install helm
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash     
+
+          # Install Kyverno Chainsaw 
+          curl -LO https://github.com/kyverno/chainsaw/releases/download/v0.2.4/chainsaw_linux_amd64.tar.gz
+          tar xvf chainsaw_linux_amd64.tar.gz
+          chmod +x chainsaw
+          sudo mv chainsaw /usr/local/bin/
+          chainsaw          
 
       - name: Create kind cluster
         run: kind create cluster --image kindest/node:v1.27.0
-
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
       - name: Add Nirmata Helm repo
         run: helm repo add nirmata https://nirmata.github.io/kyverno-charts/
@@ -70,11 +74,9 @@ jobs:
             --set crds.clusterpolicyreports=false \
             --set crds.policyreports=false \
             --set crds.cleanuppolicies=false
+          set -e
+          kubectl wait --namespace kyverno --for=condition=ready pod --selector '!job-name' --timeout=60s
+          kubectl get pods -A
+          
 
-      - name: Install Kyverno Chainsaw
-        run: |
-          curl -LO https://github.com/kyverno/chainsaw/releases/download/v0.2.4/chainsaw_linux_amd64.tar.gz
-          tar xvf chainsaw_linux_amd64.tar.gz
-          chmod +x chainsaw
-          sudo mv chainsaw /usr/local/bin/
-          chainsaw version
+
