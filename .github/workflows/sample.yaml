@@ -89,6 +89,11 @@ jobs:
             kubectl wait --for=condition=ready pod/$pd -n kyverno --timeout=300s
           done
           kubectl get pods -A
+
+      - name: Run chainsaw tests against the policies
+        run: |   
+          cd mypolicies/.chainsaw-test && chainsaw test
+          echo "The exit code after running the chainsaw test: $?"
           
 
 
