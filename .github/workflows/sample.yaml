@@ -72,19 +72,20 @@ jobs:
           helm install kyverno nirmata/kyverno \
             --version=v3.0.29 \
             --namespace kyverno \
-            --create-namespace \
-            --set admissionController.replicas=1 \
-            --set cleanupController.enabled=false \
-            --set reportsController.enabled=false \
-            --set backgroundController.enabled=false \
-            --set crds.backgroundscanreports=false \
-            --set crds.clusterbackgroundscanreports=false \
-            --set crds.clusterpolicyreports=false \
-            --set crds.policyreports=false \
-            --set crds.cleanuppolicies=false
+            --create-namespace 
+            # --set admissionController.replicas=1 \
+            # --set cleanupController.enabled=false \
+            # --set reportsController.enabled=false \
+            # --set backgroundController.enabled=false \
+            # --set crds.backgroundscanreports=false \
+            # --set crds.clusterbackgroundscanreports=false \
+            # --set crds.clusterpolicyreports=false \
+            # --set crds.policyreports=false \
+            # --set crds.cleanuppolicies=false
+          sleep 15
           kypods=$(kubectl get pods -n kyverno -o jsonpath='{.items[*].metadata.name}')
-          for kypod in $kypods; do
-            kubectl wait --for=condition=ready pod/$kypod -n kyverno --timeout=300s
+          for pd in ${kypods}; do
+            kubectl wait --for=condition=ready pod/$pd -n kyverno --timeout=300s
           done
           kubectl get pods -A
           
