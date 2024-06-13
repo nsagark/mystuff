@@ -64,8 +64,6 @@ jobs:
           done
           kubectl get pods -A
 
-      - name: Add Nirmata Helm repo
-        run: helm repo add nirmata https://nirmata.github.io/kyverno-charts/
 
       - name: Install N4K
         run: |
