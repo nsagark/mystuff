@@ -34,5 +34,5 @@ clusterPatches:
   kustomizePatch: ./k8s-peo-stage-01/
 - target:
      kind: Cluster
-     name: sagar-test 
-  kustomizePatch: ./sagar-test/
+     name: sagar-test3 
+  kustomizePatch: ./sagar-test3/
