@@ -161,7 +161,14 @@ Create secret to access container registry
 {{- end -}}
 
 {{- define "enterprise-kyverno.policysetsStr" -}}
-{{- range (include "enterprise-kyverno.enabledPolicysets" . | split ",") }}{{(print . " ") }} {{- end }}
+{{- $enabledPolicysets := include "enterprise-kyverno.enabledPolicysets" . -}}
+{{- $customPolicySetNames := "" -}}
+{{- range .Values.policies.customPolicySetCharts -}}
+  {{- $customPolicySetNames = (printf "%s,%s" $customPolicySetNames .name) -}}
+{{- end -}}
+{{- range (split "," (printf "%s,%s" $enabledPolicysets $customPolicySetNames | trimPrefix ",")) -}}
+  {{- print . " " -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "kyverno.excludedNamespaces" -}}
@@ -174,3 +181,20 @@ Create secret to access container registry
 {{- end -}}
 {{ toJson $excludedNamespaces }}
 {{- end }}
+
+{{/* vim: set filetype=mustache: */}}
+
+{{- define "kyverno.crds.labels" -}}
+{{- template "kyverno.labels.merge" (list
+  (include "kyverno.labels.common" .)
+  (include "kyverno.crds.matchLabels" .)
+  (toYaml .Values.customLabels)
+) -}}
+{{- end -}}
+
+{{- define "kyverno.crds.matchLabels" -}}
+{{- template "kyverno.labels.merge" (list
+  (include "kyverno.matchLabels.common" .)
+  (include "kyverno.labels.component" "crds")
+) -}}
+{{- end -}}

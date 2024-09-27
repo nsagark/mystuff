@@ -2,6 +2,9 @@
 Nirmata Kyverno Opertor is a Kubernetes Operator to manage lifecycle of Kyverno, Adapters and Nirmata supported policies. 
 
 ## Prerequisites
+
+As a prerequisite, user needs to install [kyverno-operator-crd](../enterprise-kyverno-operator-crd/) to install operator.
+
 ### Get license key
 You need a license key to run Enterprise Kyverno. If you are using `Enterprise for Kyverno`, or `Nirmata Policy Manager`, it is available in the UI. Else contact `support@nirmata.com`.
 
@@ -112,7 +115,7 @@ Apply them to the cluster. E.g.
 ```bash
 kubectl apply -f mypolBkpUpgraded.yaml
 ```
-Verify that those policies/policysets show up as ready and are working as expected. The 1.10 compatible versions of Nirmata supplied policysets are already as per those guidelines, so there is no need to change them. 
+Verify that those policies/policysets show up as ready and are working as expected. The 1.10 compatible versions of Nirmata supplied policysets are already as per those guidelines, so there is no need to change them.
 
 ## Configure Adapters
 Adapters such as AWS, CIS, Image Scan and others can be configured by setting appropriate flags corresponding to that adapter. In general, we need to provide 2 flags
@@ -135,6 +138,44 @@ There are platform specific configurations in which the Kyverno Helm chart confi
 - `aks`
 - `eks`
 - `openshift`
+
+## Troubleshooting
+
+### Webhook server cert error when installing via ArgoCD
+While installing the operator Helm Chart via ArgoCD, we might see a webhook error like this:
+
+```
+Error from server (InternalError): Internal error occurred: failed calling webhook "mutate.kyverno.svc-fail": Post "https://infra-kyverno-svc.infra.svc:443/mutate?timeout=10s": x509: certificate signed by unknown authority (possibly because of "crypto/rsa: verification error" while trying to verify candidate authority certificate "*.kyverno.svc")
+```
+The CA certificate in the operator secret `nirmata-system/webhook-server-cert` and that in the validating webhookconfiguration `kyverno-operator-validating-webhook-configuration` should match. Operator rewrites the webhookconfiguration and the secret too, after install. So, ArgoCD will show it as a drift. To fix it, we can use the following to the ArgoCD app manifest:
+
+```
+spec:
+  ignoreDifferences:
+  - name: webhook-server-secret
+    kind: Secret
+    jsonPointers:
+    - /data/tls.key
+    - /data/tls.crt
+    - /data/ca.crt
+```
+
+### Error creating Kyverno CR when installing via ArgoCD
+The Kyverno CR creation might fail when sync'ing the ArgoCD app. This could happen because ArgoCD has problems installing Helm Charts having both a CRD as well as CR. For that, we need to add a retry so that the CR can be applied after the CRD is ready. E.g.
+
+```
+syncPolicy:
+  syncOptions:
+    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true
+    - ServerSideApply=true
+  retry:
+    limit: 2
+    backoff:
+      duration: 20s
+      factor: 2
+      maxDuration: 3m0s
+```
 
 ## Helm Chart Values
 
@@ -187,6 +228,12 @@ There are platform specific configurations in which the Kyverno Helm chart confi
 | imageScanAdapter.rbac.create | bool | false | Create RBAC resources for Image Scan Adapter, if it is going to be enabled now (through the imageScanAdapter.createCR helm param below) or later |
 | imageScanAdapter.createCR | bool | false | Enable Image Scan Adapter by creating its Adapter Config CR |
 | imageScanAdapter.helm | object | `scanAll: true` | Free form yaml section with helm parameters in Image Scan Adapter Helm chart. Needed only if imageScanAdapter.createCR is true. See all parameters [here](https://github.com/nirmata/kyverno-charts/tree/main/charts/image-scan-adapter#values) |
+| policies.customPolicySetCharts.chartRepo | string | `nil` | Deploy custom policy sets and set repository |
+| policies.customPolicySetCharts.chartName | string | `nil` | Deploy custom policy sets and set chart name |
+| policies.customPolicySetCharts.version   | string | `nil` | Deploy custom policy sets and set version   |
+| policies.customPolicySetCharts.username  | string | `nil` | Deploy custom policy sets and set username |
+| policies.customPolicySetCharts.passwordSecret | string | `nil` | Deploy custom policy sets and set key/password |
+| policies.customPolicySetCharts.name      | string | `nil` | Deploy custom policy sets and set policy set name |
 
 ## (Optional) External certificate management for webhooks
 Kyverno Operator uses webhooks to provide enhanced functionality such as logging user information in resource change events logged into the Kubernetes event stream, and some enhanced semantic checks for custom resources.

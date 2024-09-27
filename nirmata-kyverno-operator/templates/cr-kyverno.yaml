@@ -3,13 +3,14 @@ apiVersion: security.nirmata.io/v1alpha1
 kind: KyvernoConfig
 metadata:
   annotations:
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    {{- if .Values.globalAnnotations }}
+    {{- toYaml .Values.globalAnnotations | nindent 4 }}
+    {{- end }}
   labels:
     {{- include "enterprise-kyverno.labels" . | nindent 4 }}
   name: kyverno
   namespace: {{ template "enterprise-kyverno.namespace" . }}
 spec:
-  secrets: "operator-parms"  
   namespace: {{ include "kyverno.namespace" . }}
   repository: {{ .Values.kyverno.image.repository }}
   version: {{ .Values.kyverno.image.tag }}

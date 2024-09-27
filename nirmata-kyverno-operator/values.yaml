@@ -4,25 +4,29 @@
 
 profile: "prod"
 
-licenseKey: "free-tier-license"
-
 cloudPlatform: ""
 
 namespace:
 
-replicaCount: 3
+globalLabels: {}
+globalAnnotations: {}
+enablePreDeleteHook: true
+
+replicaCount: 1
 
 envVars: []
 
 image:
   repository: ghcr.io/nirmata/nirmata-kyverno-operator
   # Defaults to chart appVersion
-  tag: v0.2.5
+  tag:
   pullPolicy: IfNotPresent
   pullSecrets:
     registry: ghcr.io
     name: image-pull-secret
     create: false
+    username:
+    password:
 
 rbac:
   create: true
@@ -40,11 +44,14 @@ enableWebhook: true
 # Whether certificate management is done by "cert-manager", "operator", "other"
 certManager: operator
 
+# set to true if secret is being provided for licenseManager, and set the name under helm.licenseManager.apiSecret/helm.licenseManager.licenseSecret
+apiAndLicenseSecretExists: false
+
 # Component configurations
 kyverno:
   createCR: true
   enablePolicyExceptions: true
-  replicaCount: 3
+  replicaCount:
   cleanupJobsRegistry: ~
   config:
     create: true
@@ -62,6 +69,7 @@ kyverno:
       # -- Extra resource permissions to add in the cluster role
       extraResources: []
   admissionController:
+    replicas: ~
     rbac:
       create: true
       serviceAccount:
@@ -69,15 +77,22 @@ kyverno:
       clusterRole:
         # -- Extra resource permissions to add in the cluster role
         extraResources: []
+      coreClusterRole:
+        # -- Extra resource permissions to add in the core cluster role.
+        # This was introduced to avoid breaking change in the chart but should ideally be moved in `clusterRole.extraResources`.
+        # @default -- See [values.yaml](values.yaml)
+        extraResources:
   templating:
     enabled: false
-    image: bitnami/kubectl:latest
+    image: ghcr.io/nirmata/kubectl:1.29.1
+    version: ~
+  customNamespaces: false
   webhooksCleanup:
     enable: false
+    enabled: false
   crds:
     install: true
-    annotations: 
-      argocd.argoproj.io/sync-options: Replace=true
+    annotations: {}
   cleanupController:
     # -- Enable cleanup controller.
     enabled: true
@@ -89,6 +104,11 @@ kyverno:
       clusterRole:
         # -- Extra resource permissions to add in the cluster role
         extraResources: []
+      coreClusterRole:
+        # -- Extra resource permissions to add in the core cluster role.
+        # This was introduced to avoid breaking change in the chart but should ideally be moved in `clusterRole.extraResources`.
+        # @default -- See [values.yaml](values.yaml)
+        extraResources:
   reportsController:
     # -- Enable reports controller.
     enabled: true
@@ -100,6 +120,11 @@ kyverno:
       clusterRole:
         # -- Extra resource permissions to add in the cluster role
         extraResources: []
+      coreClusterRole:
+        # -- Extra resource permissions to add in the core cluster role.
+        # This was introduced to avoid breaking change in the chart but should ideally be moved in `clusterRole.extraResources`.
+        # @default -- See [values.yaml](values.yaml)
+        extraResources:
   backgroundController:
     # -- Enable background controller.
     enabled: true
@@ -111,6 +136,11 @@ kyverno:
       clusterRole:
         # -- Extra resource permissions to add in the cluster role
         extraResources: []
+      coreClusterRole:
+        # -- Extra resource permissions to add in the core cluster role.
+        # This was introduced to avoid breaking change in the chart but should ideally be moved in `clusterRole.extraResources`.
+        # @default -- See [values.yaml](values.yaml)
+        extraResources:
   kyverno:
     customLabels: {}
   nameOverride: "kyverno"
@@ -123,110 +153,64 @@ kyverno:
     # -- Image repository
     repository: ghcr.io
     # -- Image tag
-    tag: v1.10.7-n4k.nirmata.3
+    tag: v1.11.4-n4k.nirmata.9
 
   # -- Override default exclude namespaces (default kyverno, kube-system, nirmata, nirmata-system )
   excludedNamespacesForWebhook: []
 
   # Kyverno Helm Chart customizations other than those already in kyverno CR
   helm:
-    grafana.enabled: true
+    features:
+      generateValidatingAdmissionPolicy:
+        # -- Enables the feature
+        enabled: false
+    policyReportsCleanup:
+      enabled: false
+      image:
+        registry: ~
+        repository: ghcr.io/nirmata/kubectl
+        tag: '1.29.1'
+        pullPolicy: ~
+      podSecurityContext: {}
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        privileged: false
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+    apiVersionOverride:
+      podDisruptionBudget: "policy/v1"
     licenseManager:
-      imageTag: v0.1.8
-    securityContext: {}
-    admissionController:
-      serviceMonitor.enabled: true
-      serviceMonitor.namespace: prometheus-operator
-      securityContext: {}
-      initContainer:
-        resources:
-          limits:
-            memory: 256Mi
-          requests:
-            cpu: 10m
-            memory: 128Mi
-      container:
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            cpu: 100m
-            memory: 128Mi
-
-    cleanupController:
-      serviceMonitor.enabled: true
-      serviceMonitor.namespace: prometheus-operator    
-      image: 
-        registry: ghcr.io
-      securityContext: {}
-      resources:
-        # -- Pod resource limits
-        limits:
-          memory: 256Mi
-        # -- Pod resource requests
-        requests:
-          cpu: 100m
-          memory: 64Mi
-
-    reportsController:
-      serviceMonitor.enabled: true
-      serviceMonitor.namespace: prometheus-operator    
-      image: 
-        registry: ghcr.io
-      securityContext: {}
-      resources:
-        # -- Pod resource limits
-        limits:
-          memory: 256Mi
-        # -- Pod resource requests
-        requests:
-          cpu: 100m
-          memory: 64Mi
-
-    backgroundController:
-      serviceMonitor.enabled: true
-      serviceMonitor.namespace: prometheus-operator    
-      securityContext: {}
-      image: 
-        registry: ghcr.io
-      resources:
-        # -- Pod resource limits
-        limits:
-          memory: 256Mi
-        # -- Pod resource requests
-        requests:
-          cpu: 100m
-          memory: 64Mi
-          
+      imageTag: 0.1.16
     webhooksCleanup:
-      image: bitnami/kubectl:latest
+      enabled: false
+      image: ghcr.io/nirmata/kubectl:1.29.1
     cleanupJobs:
       admissionReports:
         image:
-          repository: bitnami/kubectl
-          tag: 'latest'
+          tag: '1.29.0'
       clusterAdmissionReports:
         image:
-          repository: bitnami/kubectl
-          tag: 'latest'
-    apiVersionOverride:
-      podDisruptionBudget: "policy/v1"
-
-    config:
-    webhooks:
-    #Exclude namespaces
-      - namespaceSelector:
-        matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values:
-          - kyverno
-          - kube-system
-          - nirmata-system
+          tag: '1.29.0'
 
 policies:
   chartRepoUsername:
-  policySets: "[]"
+  policySets:
+#  Custom Policy sets can be deployed now by specifying a list of extra custom policyset parameters (chartRepo, chartName, version etc.)
+#  so that policysets need not be created manually. Below is an example addition -
+#  customPolicySetCharts:
+#    - chartRepo: https://nirmata.github.io/kyverno-policies
+#      chartName: kubernetes-best-practice-policies
+#      version: 0.2.1
+#      username: user
+#      passwordSecret: nirmata-system/api/Key
+#      name: k8s-best-practices
 
 awsAdapter:
   createCR: false
@@ -234,7 +218,7 @@ awsAdapter:
   replicas: 1
   image:
     repository: ghcr.io/nirmata/kyverno-aws-adapter
-    tag: 'latest'
+    tag: v0.3.0
   rbac:
     create: false
     serviceAccount:
@@ -252,7 +236,7 @@ imageScanAdapter:
   replicas: 1
   image:
     repository: ghcr.io/nirmata/image-scan-adapter
-    tag: latest
+    tag: v0.1.0
   rbac:
     create: false
     serviceAccount:
@@ -267,7 +251,7 @@ cisAdapter:
   replicas: 1
   image:
     repository: ghcr.io/nirmata/kube-bench-adapter
-    tag: latest
+    tag: v0.2.1
   rbac:
     create: false
   serviceAccount:
@@ -345,6 +329,8 @@ autoscaling:
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
 
 tolerations: []
 
