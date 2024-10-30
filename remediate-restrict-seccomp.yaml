@@ -30,7 +30,7 @@ spec:
       mutate:
         foreach:
         - list: "request.object.spec.template.spec.[containers, initContainers, ephemeralContainers][]"
-          #order: Descending
+          order: Descending
           preconditions:
             all:
             - key: "{{ element.securityContext.seccompProfile.type || '' }}"
