@@ -45,15 +45,28 @@ spec:
               - "net.ipv4.ip_unprivileged_port_start"
               - "net.ipv4.tcp_syncookies"
               - "net.ipv4.ping_group_range"
-          patchStrategicMerge:
-            spec:
-              template:
-                spec:
-                  securityContext:
-                    sysctls:
-                    - (name): "{{ element.name }}"
-                      name: "kernel.shm_rmid_forced"
-                      value: "2"
+          patchesJson6902: |-
+            - op: remove
+              path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}/name
+            - op: remove
+              path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}/value            
+            - op: add
+              path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}/name
+              value:
+                - kernel.shm_rmid_forced
+            - op: add
+              path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}/value
+              value:
+                - "2"                    
+          # patchStrategicMerge:
+          #   spec:
+          #     template:
+          #       spec:
+          #         securityContext:
+          #           sysctls:
+          #           - (name): "{{ element.name }}"
+          #             name: "kernel.shm_rmid_forced"
+          #             value: "2"
                   # containers:
                   #   - (name): "{{ element.name }}"
                   #     securityContext:
