@@ -73,7 +73,7 @@ spec:
                 - DaemonSet
       preconditions:
         all:
-        - key: "{{ request.object.spec.template.spec.securityContext.seccompProfile.type}}"
+        - key: "{{ request.object.spec.template.spec.securityContext.seccompProfile.type || '' }}"
           operator: Equals
           value: Unconfined
       mutate:
