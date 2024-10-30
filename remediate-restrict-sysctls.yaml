@@ -71,4 +71,4 @@ spec:
                   #     securityContext:
                   #       seccompProfile:
                   #         (type): "Unconfined"
-                          type: "RuntimeDefault"
+                          # type: "RuntimeDefault"
