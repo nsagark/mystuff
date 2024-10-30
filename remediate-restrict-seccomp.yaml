@@ -40,10 +40,6 @@ spec:
             spec:
               template:
                 spec:
-                  # securityContext:
-                  #   seccompProfile:
-                  #     (type): "Unconfined"
-                  #     type: "RuntimeDefault"
                   containers:
                     - (name): "{{ element.name }}"
                       securityContext:
