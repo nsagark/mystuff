@@ -28,7 +28,7 @@ spec:
                 - DaemonSet
       preconditions:
         all:
-          - key: "{{ request.object.spec.template.spec.sysctls || '' | length(@) }}"
+          - key: "{{ request.object.spec.template.spec.securityContext.sysctls || '' | length(@) }}"
             operator: NotEquals
             value: 0            
       mutate:
