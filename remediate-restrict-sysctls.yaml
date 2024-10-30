@@ -52,7 +52,7 @@ spec:
                   securityContext:
                     sysctls:
                     - (name): "{{ element.name }}"
-                      name: kernel.shm_rmid_forced
+                      name: "kernel.shm_rmid_forced"
                       value: "2"
                   # containers:
                   #   - (name): "{{ element.name }}"
