@@ -54,7 +54,7 @@ spec:
               path: /spec/template/spec/securityContext/sysctls/{{elementIndex}}/name
               value: kernel.shm_rmid_forced
             - op: add
-              path: /spec/template/spec/securityContextsysctls/{{elementIndex}}/value
+              path: /spec/template/spec/securityContext/sysctls/{{elementIndex}}/value
               value: "2"                    
           # patchStrategicMerge:
           #   spec:
