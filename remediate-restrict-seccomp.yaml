@@ -77,7 +77,11 @@ spec:
           operator: Equals
           value: Unconfined
       mutate:
-        patchesJson6902: |-
-          - path: /spec/template/spec/securityContext.seccompProfile.type
-            op: replace
-            value: RuntimeDefault                       
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                securityContext:
+                  seccompProfile:
+                    (type): "Unconfined"
+                    type: "RuntimeDefault"                  
