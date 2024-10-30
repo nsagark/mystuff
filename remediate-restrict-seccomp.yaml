@@ -40,8 +40,8 @@ spec:
             spec:
               template:
                 spec:
-                  =(securityContext):
-                    =(seccompProfile):
+                  securityContext:
+                    seccompProfile:
                       (type): "Unconfined"
                       type: "RuntimeDefault"
                   containers:
