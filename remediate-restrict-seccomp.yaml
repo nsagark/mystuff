@@ -31,29 +31,34 @@ spec:
         foreach:
         - list: "request.object.spec.template.spec.[containers, initContainers, ephemeralContainers][]"
           order: Descending
+          preconditions:
+          all:
+          - key: "{{ element.securityContext.seccompProfile.type || '' }}"
+            operator: AnyIn
+            value: "Unconfined"          
           patchStrategicMerge:
             spec:
               template:
                 spec:
-                  =(securityContext):
-                    =(seccompProfile):
-                      (type): "Unconfined"
-                      type: "RuntimeDefault"
+                  # =(securityContext):
+                  #   =(seccompProfile):
+                  #     (type): "Unconfined"
+                  #     type: "RuntimeDefault"
                   containers:
                     - (name): "{{ element.name }}"
-                      =(securityContext):
-                        =(seccompProfile):
+                      securityContext:
+                        seccompProfile:
                           (type): "Unconfined"
                           type: "RuntimeDefault"
                   initContainers:
                     - (name): "{{ element.name }}"
-                      =(securityContext):
-                        =(seccompProfile):
+                      securityContext:
+                        seccompProfile:
                           (type): "Unconfined"
                           type: "RuntimeDefault"
                   ephemeralContainers:
                     - (name): "{{ element.name }}"
-                      =(securityContext):
-                        =(seccompProfile):
+                      securityContext:
+                        seccompProfile:
                           (type): "Unconfined"
                           type: "RuntimeDefault"
