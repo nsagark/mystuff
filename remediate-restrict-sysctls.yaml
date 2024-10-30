@@ -55,31 +55,4 @@ spec:
               value: kernel.shm_rmid_forced
             - op: add
               path: /spec/template/spec/securityContext/sysctls/{{elementIndex}}/value
-              value: "2"                    
-          # patchStrategicMerge:
-          #   spec:
-          #     template:
-          #       spec:
-          #         securityContext:
-          #           sysctls:
-          #           - (name): "{{ element.name }}"
-          #             name: "kernel.shm_rmid_forced"
-          #             value: "2"
-                  # containers:
-                  #   - (name): "{{ element.name }}"
-                  #     securityContext:
-                  #       seccompProfile:
-                  #         (type): "Unconfined"
-                  #         type: "RuntimeDefault"
-                  # initContainers:
-                  #   - (name): "{{ element.name }}"
-                  #     securityContext:
-                  #       seccompProfile:
-                  #         (type): "Unconfined"
-                  #         type: "RuntimeDefault"
-                  # ephemeralContainers:
-                  #   - (name): "{{ element.name }}"
-                  #     securityContext:
-                  #       seccompProfile:
-                  #         (type): "Unconfined"
-                          # type: "RuntimeDefault"
+              value: "2"
