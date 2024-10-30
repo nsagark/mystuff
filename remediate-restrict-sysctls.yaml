@@ -28,9 +28,9 @@ spec:
                 - DaemonSet
       preconditions:
         all:
-          - key: "{{ request.object.spec.template.spec.securityContext.sysctls || '' | length(@) }}"
+          - key: "{{ request.object.spec.template.spec.securityContext.sysctls || `[]` }}"
             operator: NotEquals
-            value: 0            
+            value: []        
       mutate:
         foreach:
         - list: "request.object.spec.template.spec.securityContext.sysctls[]"
