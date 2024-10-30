@@ -47,14 +47,14 @@ spec:
               - "net.ipv4.ping_group_range"
           patchesJson6902: |-
             - op: remove
-              path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}
+              path: /spec/template/spec/securityContext/sysctls/{{elementIndex}}
             # - op: remove
             #   path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}/value            
             - op: add
-              path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}/name
+              path: /spec/template/spec/securityContext/sysctls/{{elementIndex}}/name
               value: kernel.shm_rmid_forced
             - op: add
-              path: /spec/template/spec/securityContext.sysctls/{{elementIndex}}/value
+              path: /spec/template/spec/securityContextsysctls/{{elementIndex}}/value
               value: "2"                    
           # patchStrategicMerge:
           #   spec:
