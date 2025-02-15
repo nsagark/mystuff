@@ -1,0 +1,71 @@
+##
+# Provided by Sagar on 2023-05-16
+##
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-add-capabilities
+  annotations:
+    policies.kyverno.io/category: pod-security
+    policies.kyverno.io/scored: "true"
+    policies.kyverno.io/severity: HIGH
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Capabilities permit privileged actions without giving full root access.
+      Adding capabilities beyond the default set must not be allowed. This policy
+      ensures users cannot add any additional capabilities to a Pod.      
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: capabilities
+      match:
+        any:
+        - resources:
+            kinds:
+            - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+            - ado-agents # [SETGID, SETUID]
+            - argocd
+            - calico-system
+            - cattle-fleet-system
+            - cattle-impersonation-system
+            - cattle-logging-system
+            - cattle-monitoring-system
+            - cattle-neuvector-system
+            - cattle-system
+            - chaos-mesh
+            - datadog
+            - fleet-default
+            - harbor
+            - kube-system
+            - linkerd
+            - linkerd-buoyant
+            - linkerd-cni
+            - linkerd-smi
+            - awx
+            - tql-platform-awx
+            - litmus
+            - longhorn-system
+            - metallb-system
+            - rabbitmq-system
+            - tigera-operator
+      validate:
+        message: >-
+          Adding of additional capabilities beyond the default set is not allowed.
+          The fields spec.containers[*].securityContext.capabilities.add and
+          spec.initContainers[*].securityContext.capabilities.add must be empty.          
+        pattern:
+          spec:
+            containers:
+              - =(securityContext):
+                  =(capabilities):
+                    X(add): "null"
+            =(initContainers):
+              - =(securityContext):
+                  =(capabilities):
+                    X(add): "null"

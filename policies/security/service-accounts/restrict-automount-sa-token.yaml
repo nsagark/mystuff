@@ -1,0 +1,60 @@
+##
+# Provided by Sagar on 2023-05-16
+##
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-automount-sa-token
+  annotations:
+    policies.kyverno.io/title: Restrict Auto-Mount of Service Account Tokens
+    policies.kyverno.io/category: service-account-security
+    policies.kyverno.io/scored: "false"
+    policies.kyverno.io/severity: LOW
+    policies.kyverno.io/subject: Pod,ServiceAccount
+    policies.kyverno.io/description: >-
+      Kubernetes automatically mounts ServiceAccount credentials in each Pod.
+      The ServiceAccount may be assigned roles allowing Pods to access API resources.
+      Blocking this ability is an extension of the least privilege best practice and should
+      be followed if Pods do not need to speak to the API server to function.
+      This policy ensures that mounting of these ServiceAccount tokens is blocked.      
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: validate-automountServiceAccountToken
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - argocd
+          - calico-system
+          - cattle-fleet-system
+          - cattle-impersonation-system
+          - cattle-logging-system
+          - cattle-monitoring-system
+          - cattle-neuvector-system
+          - cattle-system
+          - cert-manager
+          - cis-operator-system
+          - chaos-mesh
+          - datadog
+          - harbor
+          - kube-system
+          - litmus
+          - linkerd
+          - linkerd-cni
+          - linkerd-viz
+          - longhorn-system
+          - nirmata
+          - tigera-operator
+    validate:
+      message: "Auto-mounting of Service Account tokens is not allowed."
+      pattern:
+        spec:
+          automountServiceAccountToken: "false"

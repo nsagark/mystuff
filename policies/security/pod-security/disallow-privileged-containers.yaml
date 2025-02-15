@@ -1,0 +1,62 @@
+##
+# Provided by Sagar on 2023-05-16
+##
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged-containers
+  annotations:
+    policies.kyverno.io/category: pod-security
+    policies.kyverno.io/scored: "true"
+    policies.kyverno.io/severity: HIGH
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Privileged mode disables most security mechanisms and must not be allowed. This policy
+      ensures Pods do not call for privileged mode.      
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: priviledged-containers
+      match:
+        any:
+        - resources:
+            kinds:
+            - Pod
+      exclude:
+        any:
+        - resources:
+            namespaces:
+            - argocd
+            - awx
+            - calico-system
+            - cattle-fleet-system
+            - cattle-impersonation-system
+            - cattle-logging-system
+            - cattle-monitoring-system
+            - cattle-neuvector-system
+            - cattle-system
+            - chaos-mesh
+            - datadog
+            - harbor
+            - kube-system
+            - linkerd
+            - linkerd-cni
+            - litmus
+            - longhorn-system
+            - sysdig-agent
+            - tigera-operator
+            - kube-system # SUSE SR 01415244
+      validate:
+        message: >-
+          Privileged mode is disallowed. The fields spec.containers[*].securityContext.privileged
+          and spec.initContainers[*].securityContext.privileged must not be set to true.          
+        pattern:
+          spec:
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            containers:
+              - =(securityContext):
+                  =(privileged): "false"

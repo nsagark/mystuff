@@ -1,0 +1,93 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cert-manager-defaults
+spec:
+  failurePolicy: Fail
+  rules:
+  # Set a sane default for the history field if not already present
+  - name: set-revisionHistoryLimit
+    match:
+      any:
+      - resources:
+          kinds:
+          - Certificate
+    mutate:
+      patchStrategicMerge:
+        spec:
+          # +(...) This is the clever syntax for if not already set
+          +(revisionHistoryLimit): 3
+  # Set rotation to always if not already set
+  - name: set-privateKey-rotationPolicy
+    match:
+      any:
+      - resources:
+          kinds:
+          - Certificate
+    mutate:
+      patchStrategicMerge:
+        spec:
+          privateKey:
+            +(rotationPolicy): Always
+  # Set private key details for algorithm and size
+  - name: set-privateKey-details
+    match:
+      any:
+      - resources:
+          kinds:
+          - Certificate
+    mutate:
+      patchStrategicMerge:
+        spec:
+          privateKey:
+            +(algorithm): RSA
+            +(size): 4096
+            +(encoding): PKCS1
+
+  - name: set-default-issuer-ref
+    match:
+      any:
+      - resources:
+          kinds:
+          - Certificate
+    mutate:
+      patchStrategicMerge:
+        spec:
+          +(issuerRef):
+            name: tql-ca-issuer 
+            kind: ClusterIssuer
+            group: cert-manager.io
+
+  - name: set-default-secret-name
+    match:
+      any:
+      - resources:
+          kinds:
+          - Certificate
+    mutate:
+      patchStrategicMerge:
+        spec:
+          # You can read more about this syntax in the Kyverno documentation:
+          # https://kyverno.io/docs/writing-policies/variables/#variables-from-admission-review-requests
+          +(secretName): "{{request.object.metadata.name || ''}}-cert"
+  # Set a default for issuerRef fields
+  - name: set-duration
+    match:
+      any:
+      - resources:
+          kinds:
+          - Certificate
+    mutate:
+      patchStrategicMerge:
+        spec:
+          +(duration): 2160h #90d
+  - name: set-renewBefore
+    match:
+      any:
+      - resources:
+          kinds:
+          - Certificate
+    mutate:
+      patchStrategicMerge:
+        spec:
+          +(renewBefore): 360h # 15d

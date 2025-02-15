@@ -1,0 +1,65 @@
+##
+# Provided by Sagar on 2023-05-16
+##
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-privilege-escalation
+  annotations:
+    policies.kyverno.io/category: pod-security
+    policies.kyverno.io/scored: "true"
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Privilege escalation, such as via set-user-ID or set-group-ID file mode, should not be allowed.
+      This policy ensures the `allowPrivilegeEscalation` fields are either undefined
+      or set to `false`.  User Story 187000.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: deny-privilege-escalation
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - ado-agents
+          - argocd
+          - calico-system
+          - cattle-fleet-system
+          - cattle-impersonation-system
+          - cattle-logging-system
+          - cattle-monitoring-system
+          - cattle-system
+          - chaos-mesh
+          - datadog
+          - harbor
+          - kube-system
+          - litmus
+          - linkerd
+          - linkerd-cni
+          - longhorn-system
+          - metallb-system
+          - rabbitmq-system
+          - sysdig-agent
+          - tigera-operator
+    validate:
+      message: >-
+        Privilege escalation is disallowed. The fields
+        spec.containers[*].securityContext.allowPrivilegeEscalation, and
+        spec.initContainers[*].securityContext.allowPrivilegeEscalation must
+        be undefined or set to `false`.        
+      pattern:
+        spec:
+          =(initContainers):
+          - =(securityContext):
+              =(allowPrivilegeEscalation): "false"
+          containers:
+          - =(securityContext):
+              =(allowPrivilegeEscalation): "false"
