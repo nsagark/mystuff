@@ -1,0 +1,28 @@
+{{- if .Values.reportsController.enabled -}}
+{{- if .Values.reportsController.metricsService.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "kyverno.reports-controller.name" . }}-metrics
+  namespace: {{ template "kyverno.namespace" . }}
+  labels:
+    {{- include "kyverno.reports-controller.labels" . | nindent 4 }}
+{{- $commonAnnotations := include "kyverno.reports-controller.serviceAnnotations" . | nindent 4 }}
+{{- if $commonAnnotations }}
+  annotations:
+{{ $commonAnnotations }}
+{{- end }}
+spec:
+  ports:
+  - port: {{ .Values.reportsController.metricsService.port }}
+    targetPort: 8000
+    protocol: TCP
+    name: metrics-port
+    {{- if and (eq .Values.reportsController.metricsService.type "NodePort") (not (empty .Values.reportsController.metricsService.nodePort)) }}
+    nodePort: {{ .Values.reportsController.metricsService.nodePort }}
+    {{- end }}
+  selector:
+    {{- include "kyverno.reports-controller.matchLabels" . | nindent 4 }}
+  type: {{ .Values.reportsController.metricsService.type }}
+{{- end -}}
+{{- end -}}
