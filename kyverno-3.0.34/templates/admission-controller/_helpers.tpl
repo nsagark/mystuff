@@ -1,15 +1,5 @@
 {{/* vim: set filetype=mustache: */}}
 
-{{- define "kyverno.annotations.merge" -}}
-{{- $annotations := dict -}}
-{{- range . -}}
-  {{- $annotations = merge $annotations (fromYaml .) -}}
-{{- end -}}
-{{- with $annotations -}}
-  {{- toYaml $annotations -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "kyverno.admission-controller.name" -}}
 {{ template "kyverno.name" . }}-admission-controller
 {{- end -}}

@@ -27,6 +27,14 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 {{- end -}}
 
+{{- define "kyverno.annotations.common" -}}
+{{- if .Values.customAnnotations }}
+  {{- template "kyverno.annotations.merge" (list
+    (toYaml .Values.customAnnotations)
+  ) -}}
+  {{- end }}
+{{- end -}}
+
 {{- define "kyverno.labels.version" -}}
 app.kubernetes.io/version: {{ template "kyverno.chartVersion" . }}
 {{- end -}}
@@ -37,14 +45,6 @@ app.kubernetes.io/version: {{ template "kyverno.chartVersion" . }}
   (include "kyverno.labels.version" .)
   (toYaml .Values.customLabels)
 ) -}}
-{{- end -}}
-
-{{- define "kyverno.annotations.common" -}}
-{{- if .Values.customAnnotations }}
-  {{- template "kyverno.annotations.merge" (list
-    (toYaml .Values.customAnnotations)
-  ) -}}
-  {{- end }}
 {{- end -}}
 
 {{- define "kyverno.matchLabels.common" -}}

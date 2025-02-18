@@ -22,6 +22,11 @@ metadata:
   name: {{ template "kyverno.reports-controller.roleName" . }}:core
   labels:
     {{- include "kyverno.reports-controller.labels" . | nindent 4 }}
+{{- $commonAnnotations := include "kyverno.annotations.common" . | nindent 4 }}
+{{- if $commonAnnotations }}
+  annotations:
+{{ $commonAnnotations }}
+{{- end }}
 rules:
   - apiGroups:
       - kyverno.io
@@ -74,6 +79,11 @@ metadata:
   name: {{ template "kyverno.reports-controller.roleName" $ }}:additional
   labels:
     {{- include "kyverno.reports-controller.labels" $ | nindent 4 }}
+{{- $commonAnnotations := include "kyverno.annotations.common" . | nindent 4 }}
+{{- if $commonAnnotations }}
+  annotations:
+{{ $commonAnnotations }}
+{{- end }}
 rules:
   {{- range . }}
   - apiGroups:

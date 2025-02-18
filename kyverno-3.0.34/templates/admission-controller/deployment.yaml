@@ -83,7 +83,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: kyverno-pre
-          image: {{ include "kyverno.image" (dict "image" .Values.admissionController.initContainer.image "defaultTag" (default .Chart.AppVersion .Values.admissionController.container.image.tag)) | quote }}
+          image: {{ include "kyverno.image" (dict "globalRegistry" ((.Values.global).image).registry "image" .Values.admissionController.initContainer.image "defaultTag" (default .Chart.AppVersion .Values.admissionController.container.image.tag)) | quote }}
           imagePullPolicy: {{ default .Values.admissionController.container.image.pullPolicy .Values.admissionController.initContainer.image.pullPolicy }}
           args:
             {{- include "kyverno.features.flags" (pick (mergeOverwrite .Values.features .Values.admissionController.featuresOverride)
@@ -103,6 +103,8 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
+          - name: KYVERNO_SERVICEACCOUNT_NAME
+            value: {{ template "kyverno.admission-controller.serviceAccountName" . }}
           - name: INIT_CONFIG
             value: {{ template "kyverno.config.configMapName" . }}
           - name: METRICS_CONFIG
@@ -131,14 +133,22 @@ spec:
           - -namespace={{ template "kyverno.namespace" . }}
           - -product-name={{ .Values.licenseManager.productName }}
           {{- if .Values.licenseManager.licenseSecret }}
-          - -license-key= {{ .Values.licenseManager.licenseSecret }}
+          - -license-secret={{ .Values.licenseManager.licenseSecret }}
           {{- else }}
           - -license-key={{ required "licenseManager.licenseKey is required" .Values.licenseManager.licenseKey }}
           {{- end }}
+
+          {{- if .Values.licenseManager.secretNs }}
+          - -secret-namespace={{ .Values.licenseManager.secretNs }}
+          {{- end }}
+
+          {{- if .Values.licenseManager.apiSecret }}
+          - -api-secret={{ .Values.licenseManager.apiSecret }}
+          {{- else }}
           - -api-key={{ .Values.licenseManager.apiKey }}
+          {{- end }}
           - -run-type=init-container
           - -call-home-server={{ .Values.licenseManager.callHomeServer }}
-          - -api-key={{ .Values.licenseManager.apiKey }}
           - -cluster-id={{ .Values.licenseManager.clusterId }}
           - -cluster-name={{ .Values.licenseManager.clusterName }}
           {{- with .Values.licenseManager.resources }}
@@ -163,15 +173,21 @@ spec:
           - -namespace={{ template "kyverno.namespace" . }}
           - -product-name={{ .Values.licenseManager.productName }}
           - -validate-interval={{ .Values.licenseManager.validateIntervalMins }}
+          {{- if .Values.licenseManager.secretNs}}
+          - -secret-namespace={{ .Values.licenseManager.secretNs }}
+          {{- end}}
           {{- if .Values.licenseManager.licenseSecret }}
-          - -license-key= {{ .Values.licenseManager.licenseSecret }}
+          - -license-secret={{ .Values.licenseManager.licenseSecret }}
           {{- else }}
           - -license-key={{ required "licenseManager.licenseKey is required" .Values.licenseManager.licenseKey }}
           {{- end }}
+          {{- if .Values.licenseManager.apiSecret }}
+          - -api-secret={{ .Values.licenseManager.apiSecret }}
+          {{- else }}
           - -api-key={{ .Values.licenseManager.apiKey }}
+          {{- end }}
           - -run-type=sidecar
           - -call-home-server={{ .Values.licenseManager.callHomeServer }}
-          - -api-key={{ .Values.licenseManager.apiKey }}
           - -cluster-id={{ .Values.licenseManager.clusterId }}
           - -cluster-name={{ .Values.licenseManager.clusterName }}
           {{- with .Values.licenseManager.resources }}
@@ -184,9 +200,11 @@ spec:
           {{- end }}
       {{- end }}
         - name: kyverno
-          image: {{ include "kyverno.image" (dict "image" .Values.admissionController.container.image "defaultTag" .Chart.AppVersion) | quote }}
+          image: {{ include "kyverno.image" (dict "globalRegistry" ((.Values.global).image).registry "image" .Values.admissionController.container.image "defaultTag" .Chart.AppVersion) | quote }}
           imagePullPolicy: {{ .Values.admissionController.container.image.pullPolicy }}
           args:
+            - --caSecretName={{ template "kyverno.admission-controller.serviceName" . }}.{{ template "kyverno.namespace" . }}.svc.kyverno-tls-ca
+            - --tlsSecretName={{ template "kyverno.admission-controller.serviceName" . }}.{{ template "kyverno.namespace" . }}.svc.kyverno-tls-pair
             - --backgroundServiceAccountName=system:serviceaccount:{{ include "kyverno.namespace" . }}:{{ include "kyverno.background-controller.serviceAccountName" . }}
             - --servicePort={{ .Values.admissionController.service.port }}
             {{- if .Values.admissionController.tracing.enabled }}
@@ -218,13 +236,14 @@ spec:
               "configMapCaching"
               "deferredLoading"
               "dumpPayload"
-              "dumpPatches"
               "forceFailurePolicyIgnore"
+              "generateValidatingAdmissionPolicy"
               "logging"
               "omitEvents"
               "policyExceptions"
               "protectManagedResources"
               "registryClient"
+              "tuf"
             ) | nindent 12 }}
             {{- range $key, $value := .Values.admissionController.container.extraArgs }}
             {{- if $value }}

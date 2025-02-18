@@ -22,10 +22,18 @@ metadata:
   name: {{ template "kyverno.background-controller.roleName" . }}:core
   labels:
     {{- include "kyverno.background-controller.labels" . | nindent 4 }}
+{{- $commonAnnotations := include "kyverno.annotations.common" . | nindent 4 }}
+{{- if $commonAnnotations }}
+  annotations:
+{{ $commonAnnotations }}
+{{- end }}
 rules:
   - apiGroups:
       - kyverno.io
     resources:
+      - policies
+      - clusterpolicies
+      - policyexceptions
       - updaterequests
       - updaterequests/status
     verbs:
@@ -39,6 +47,15 @@ rules:
       - deletecollection
   - apiGroups:
       - ''
+    resources:
+      - namespaces
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
       - events.k8s.io
     resources:
       - events
@@ -46,6 +63,8 @@ rules:
       - create
       - update
       - patch
+      - get
+      - list
   - apiGroups:
       - networking.k8s.io
     resources:
@@ -79,6 +98,7 @@ rules:
       - update
       - patch
       - delete
+      - watch
 {{- with .Values.backgroundController.rbac.coreClusterRole.extraResources }}
   {{- toYaml . | nindent 2 }}
 {{- end }}
@@ -90,8 +110,14 @@ metadata:
   name: {{ template "kyverno.background-controller.roleName" $ }}:additional
   labels:
     {{- include "kyverno.background-controller.labels" $ | nindent 4 }}
+{{- $commonAnnotations := include "kyverno.annotations.common" . | nindent 4 }}
+{{- if $commonAnnotations }}
+  annotations:
+{{ $commonAnnotations }}
+{{- end }}
 rules:
   {{- toYaml . | nindent 2 }}
 {{- end }}
 {{- end }}
 {{- end }}
+
